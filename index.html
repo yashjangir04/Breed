@@ -198,7 +198,7 @@
 
         .upload-card .browse-btn {
             min-height: 48px; 
-            width: 90%; 
+            width: 100%; 
             background-color: var(--primary-green);
             color: white;
             border: none;
@@ -213,7 +213,7 @@
 
         /* --- Shared Photo Preview Section --- */
         .shared-photo-manager {
-            width: 100%;
+            /* width: 100%; */
             margin-top: 20px;
             background-color: var(--card-bg);
             border-radius: var(--border-radius-base);
@@ -308,6 +308,9 @@
         .camera-live-view {
             width: 100%;
             height: 250px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             overflow: hidden;
             background-color: #000;
             border-radius: var(--border-radius-base);
@@ -367,7 +370,7 @@
                     <span class="upload-icon">⬆️</span> 
                     <p>Drag & drop image(s) here</p>
                     <p class="or-separator">OR</p>
-                    <input type="file" id="fileInput" accept="image/*" class="file-input" multiple capture="environment">
+                    <input type="file" id="fileInput" accept="image/*" class="file-input" multiple>
                     <button id="browseBtn" class="browse-btn">Select Files</button>
                 </div>
             </div>
