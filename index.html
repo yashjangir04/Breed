@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bharat Pashudhan App: Disease Detection</title>
+    <style>
+        /* --- CSS STYLES (NO SIGNIFICANT CHANGES NEEDED HERE, MOBILE-FIRST STYLES ARE KEPT) --- */
+        :root {
+            --header-bg: #388E3C;
+            --page-bg: #FFFFFF;
+            --card-bg: #FFFFFF;
+            --primary-green: #4CAF50;
+            --primary-green-dark: #388E3C;
+            --primary-yellow: #F4D03F;
+            --primary-red: #E74C3C;
+            --text-color-dark: #333;
+            --text-color-light: #666;
+            --border-color-light: #E0E0E0;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --border-radius-base: 12px;
+            --font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            background-color: var(--page-bg);
+            color: var(--text-color-dark);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+        }
+
+        /* --- Header (Mobile Focused) --- */
+        .app-header {
+            background-color: var(--header-bg);
+            padding: 12px 15px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 4px var(--shadow-light); 
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-logo {
+            height: 30px; 
+            width: auto;
+        }
+
+        .app-title {
+            font-size: 1.3em; 
+            font-weight: 700;
+            color: #fff; 
+            margin: 0;
+        }
+        
+        .main-nav, .user-id {
+            display: none; 
+        }
+
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn {
+            background-color: var(--primary-red);
+            color: white;
+            border: none;
+            padding: 6px 14px; 
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        /* --- Main Content Layout (Mobile Default) --- */
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .page-header h2 {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .page-header p {
+            font-size: 0.95em;
+            color: var(--text-color-light);
+            max-width: 90%;
+            margin: 0 auto;
+        }
+
+        .content-cards-section {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* Desktop/Tablet adjustment */
+        @media (max-width: 768px) {
+             .content-cards-section {
+                 flex-direction: column;
+             }
+        }
+
+        @media (min-width: 768px) {
+             .main-nav { display: flex; gap: 25px; margin-right: 20px;}
+             .user-id { display: flex; }
+        }
+
+        /* --- Card Base Style --- */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius-base);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 1px solid var(--border-color-light);
+        }
+        .card h3 {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* --- Upload Photo Card --- */
+        .upload-card .drop-area {
+            border: 2px dashed var(--border-color-light);
+            border-radius: var(--border-radius-base);
+            padding: 30px 15px;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        video {
+            /* aspect-ratio: auto; */
+            width: 480px ;
+            height: 270px ;
+            overflow : hidden ;
+        }
+
+        .upload-card .upload-icon {
+            font-size: 3em; 
+            color: var(--primary-green);
+        }
+
+        .upload-card .or-separator {
+            font-size: 0.9em;
+            color: var(--text-color-light);
+            margin: 10px 0;
+            position: relative;
+            width: 100%;
+        }
+        .upload-card .or-separator::before,
+        .upload-card .or-separator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 35%;
+            height: 1px;
+            background-color: var(--border-color-light);
+        }
+        .upload-card .or-separator::before { left: 5px; }
+        .upload-card .or-separator::after { right: 5px; }
+
+        .upload-card .file-input {
+            display: none;
+        }
+
+        .upload-card .browse-btn {
+            min-height: 48px; 
+            width: 90%; 
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        /* --- Shared Photo Preview Section --- */
+        .shared-photo-manager {
+            width: 100%;
+            margin-top: 20px;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius-base);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            border: 1px solid var(--border-color-light);
+        }
+        .shared-photo-manager h4 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-color-dark);
+        }
+        .thumbnail-container {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-start;
+            flex-wrap: wrap; 
+        }
+        .thumbnail-wrapper {
+            position: relative;
+        }
+        .thumbnail {
+            width: 70px; 
+            height: 70px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--primary-green); /* Highlight selected */
+            box-shadow: 0 1px 3px var(--shadow-light);
+        }
+        .remove-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--primary-red);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            line-height: 1;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Analyze Button styling */
+        #predictBtn {
+            width: 100%;
+            min-height: 48px;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+        #predictBtn:disabled {
+            background-color: var(--primary-yellow) !important;
+            cursor: not-allowed;
+            color: #666;
+        }
+        #predictBtn:not(:disabled) {
+            background-color: var(--primary-green);
+            color: white;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+        }
+        /* Status badge for photos */
+        .photo-status {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary-green);
+            color: white;
+            font-size: 0.65em;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-weight: bold;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+
+        /* --- Camera Card (No major change) --- */
+        .camera-card {
+            background-color: #2F4F4F;
+            color: white;
+        }
+        .camera-card h3 {
+            color: white;
+        }
+
+        .camera-live-view {
+            width: 100%;
+            height: 250px; 
+            overflow: hidden;
+            background-color: #000;
+            border-radius: var(--border-radius-base);
+        }
+
+        .camera-controls {
+            display: flex;
+            justify-content: space-around; 
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        .control-btn {
+            min-height: 48px;
+        }
+        .capture-main-btn {
+            width: 70px; 
+            height: 70px;
+        }
+
+        /* --- Footer --- */
+        .app-footer {
+            padding: 15px 20px;
+            margin-top: 30px;
+            font-size: 0.8em;
+            border-top: 1px solid var(--border-color-light);
+            flex-direction: column;
+            gap: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <header class="app-header">
+        <div class="header-left">
+            <img src="https://via.placeholder.com/30x30/4CAF50/FFFFFF?text=BPA" alt="App Logo" class="app-logo">
+            <h1 class="app-title">Bharat Pashudhan App</h1>
+        </div>
+        <div class="user-controls">
+            <button class="logout-btn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <section class="page-header">
+            <h2>Detect Cattle Disease Symptoms</h2>
+            <p>Upload a minimum of 3 photos showing symptoms (e.g., mouth lesions, skin patches, eye discharge) for AI-driven disease detection. Only the first 3 will be analyzed.</p>
+        </section>
+
+        <section class="content-cards-section">
+            <div class="card upload-card">
+                <h3>Upload Symptom Photos (Min 3 Required)</h3>
+                
+                <div id="drop-area" class="drop-area">
+                    <span class="upload-icon">⬆️</span> 
+                    <p>Drag & drop image(s) here</p>
+                    <p class="or-separator">OR</p>
+                    <input type="file" id="fileInput" accept="image/*" class="file-input" multiple capture="environment">
+                    <button id="browseBtn" class="browse-btn">Select Files</button>
+                </div>
+            </div>
+
+            <div class="card camera-card">
+                <h3>Capture Live Symptoms</h3>
+                <div class="camera-live-view">
+                    <video id="cameraFeed" class="camera-stream" autoplay playsinline></video>
+                    <div class="camera-overlay-frame">
+                        <span class="instructions-text">Focus on the affected area (e.g., skin, udder, mouth).</span>
+                    </div>
+                </div>
+                <div class="camera-controls">
+                    <button class="control-btn" id="toggleFlashBtn">⚡ Flash</button>
+                    <button class="capture-main-btn" id="captureBtn">📸</button>
+                    <button class="control-btn" id="switchCameraBtn">🔄 Switch</button>
+                </div>
+            </div>
+        </section>
+        
+        <div class="shared-photo-manager">
+            <h4>Photos Selected: <span id="fileCount">0</span> Photos (<span id="analysisCount">0</span>/3 for Analysis)</h4>
+            <div id="recentUploadsContainer" class="thumbnail-container">
+                </div>
+            
+            <button id="predictBtn" class="browse-btn" disabled>
+                Need 3 Photos to ANALYZE
+            </button>
+        </div>
+        </main>
+
+    <footer class="app-footer">
+        <p>Ministry of Fisheries, Animal Husbandry & Dairying, Government of India.</p>
+        <p>© 2024 All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // --- GLOBAL STATE & CONSTANTS ---
+        let imageFiles = []; // Array to hold the selected File objects
+        const MIN_PHOTOS = 3; 
+        let currentStream; 
+        let isFrontCamera = false;
+
+        // --- DOM Element References ---
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const cameraFeed = document.getElementById('cameraFeed');
+        const captureBtn = document.getElementById('captureBtn');
+        const predictBtn = document.getElementById('predictBtn');
+        const recentUploadsContainer = document.getElementById('recentUploadsContainer');
+        const fileCountSpan = document.getElementById('fileCount');
+        const analysisCountSpan = document.getElementById('analysisCount');
+
+        // ===================================================================
+        // --- UI & VALIDATION LOGIC ---
+        // ===================================================================
+
+        function updateUI() {
+            console.log(imageFiles);
+            
+            const totalCount = imageFiles.length;
+            const analysisCount = Math.min(totalCount, MIN_PHOTOS);
+            
+            fileCountSpan.textContent = totalCount;
+            analysisCountSpan.textContent = analysisCount;
+
+            // Update the display for the analysis button
+            if (analysisCount >= MIN_PHOTOS) {
+                predictBtn.disabled = false;
+                predictBtn.style.backgroundColor = 'var(--primary-green)';
+                predictBtn.textContent = `ANALYZE ${analysisCount} PHOTOS (Ready)`;
+            } else {
+                predictBtn.disabled = true;
+                predictBtn.style.backgroundColor = 'var(--primary-yellow)';
+                predictBtn.textContent = `Need ${MIN_PHOTOS - analysisCount} Photos to ANALYZE`;
+            }
+            
+            // Re-render all thumbnails to update the "USED" badge
+            renderThumbnails();
+        }
+        
+        function renderThumbnails() {
+            recentUploadsContainer.innerHTML = ''; // Clear existing previews
+            
+            imageFiles.forEach((file, index) => {
+                addThumbnail(file, index);
+            });
+        }
+
+
+        // Creates a thumbnail preview with a remove button
+        function addThumbnail(file, index) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageUrl = event.target.result;
+                
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('thumbnail-wrapper');
+                
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.classList.add('thumbnail');
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '✖';
+                removeBtn.classList.add('remove-btn');
+                
+                // Add "USED" badge if it's one of the first MIN_PHOTOS
+                if (index < MIN_PHOTOS) {
+                    const statusBadge = document.createElement('span');
+                    statusBadge.classList.add('photo-status');
+                    statusBadge.textContent = 'USED FOR ANALYSIS';
+                    wrapper.appendChild(statusBadge);
+                }
+                
+                removeBtn.onclick = function() {
+                    // Remove the file by its index in the imageFiles array
+                    imageFiles.splice(index, 1);
+                    updateUI(); // Re-render and update status
+                };
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                recentUploadsContainer.appendChild(wrapper); // Append them in order
+            };
+            
+            if (file) reader.readAsDataURL(file);
+        }
+
+        function handleFiles(files) {
+            const fileArray = Array.from(files);
+            
+            fileArray.forEach(file => {
+                // Add all files to the array - we no longer restrict selection
+                imageFiles.push(file);
+            });
+
+            updateUI();
+        }
+
+
+        // ===================================================================
+        // --- EVENT LISTENERS ---
+        // ===================================================================
+
+        // --- File Input and Browse Button ---
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+            e.target.value = ''; 
+        });
+
+        // --- Drag and Drop Logic ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('drag-over'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('drag-over'), false);
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            handleFiles(files);
+        }, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // --- FINAL PREDICTION BUTTON HANDLER ---
+        predictBtn.addEventListener('click', async () => {
+            const analysisCount = Math.min(imageFiles.length, MIN_PHOTOS);
+            if (analysisCount < MIN_PHOTOS) return;
+
+            // Show loading state
+            predictBtn.textContent = "Analyzing... Please Wait ⏳";
+            predictBtn.disabled = true;
+
+            // We only process the first MIN_PHOTOS (3) files for analysis
+            const filesToAnalyze = imageFiles.slice(0, MIN_PHOTOS);
+
+            // 1. Convert the selected File objects into a list of Base64 strings
+            const base64Promises = filesToAnalyze.map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            try {
+                const base64Images = await Promise.all(base64Promises);
+                console.log(base64Images);
+                
+                // 2. Send the list of Base64 strings to the API
+                await sendImageToAPI(base64Images); 
+
+            } catch (error) {
+                console.error("Error during prediction:", error);
+                alert("An error occurred during image processing or network transfer.");
+            } finally {
+                // 3. Reset button state
+                updateUI();
+            }
+        });
+
+        // ===================================================================
+        // --- CAMERA AND CAPTURE LOGIC ---
+        // ===================================================================
+
+        async function startCamera(facingMode = 'environment') {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: facingMode
+                    }
+                };
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraFeed.srcObject = currentStream;
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Camera access denied or no camera found.'); 
+            }
+        }
+
+        // Capture Photo Button
+        captureBtn.addEventListener('click', () => {
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraFeed.videoWidth;
+            canvas.height = cameraFeed.videoHeight;
+            const context = canvas.getContext('2d');
+            
+            context.scale(isFrontCamera ? -1 : 1, 1);
+            context.drawImage(cameraFeed, isFrontCamera ? -canvas.width : 0, 0, canvas.width, canvas.height);
+
+            // Convert to a File object 
+            canvas.toBlob((blob) => {
+                const capturedFile = new File([blob], `capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                
+                // Add to main image array and update UI
+                imageFiles.push(capturedFile);
+                updateUI(); // Trigger re-render
+            }, 'image/jpeg');
+        });
+
+        // Switch Camera (Front/Rear)
+        document.getElementById('switchCameraBtn').addEventListener('click', () => {
+            isFrontCamera = !isFrontCamera;
+            startCamera(isFrontCamera ? 'user' : 'environment');
+            cameraFeed.style.transform = isFrontCamera ? 'scaleX(-1)' : 'scaleX(1)';
+        });
+
+        // Toggle Flash (Placeholder)
+        document.getElementById('toggleFlashBtn').addEventListener('click', () => {
+            alert('Flash control is highly dependent on device and browser APIs and may not work in a web app.');
+        });
+        
+        // ===================================================================
+        // --- API COMMUNICATION ---
+        // ===================================================================
+
+        async function sendImageToAPI(base64ImageList) {
+
+            // *** IMPORTANT: CHANGE THIS IP/PORT TO YOUR LAPTOP'S IP ADDRESS AND FLASK PORT ***
+            const API_IP = '127.0.0.1'; // e.g., '192.168.1.105' for mobile testing
+            const API_PORT = '5000'; 
+            // *** UPDATED ENDPOINT TO REFLECT DISEASE DETECTION ***
+            const apiEndpoint = `http://${API_IP}:${API_PORT}/api/predict_disease_multi`; 
+
+            try {
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        images: base64ImageList 
+                    }),
+                });
+
+                const result = await response.json();
+                console.log('Flask API Response:', result);
+
+                if (result.success) {
+                    // UPDATED RESPONSE MESSAGE
+                    alert(`Prediction successful! Detected Disease: ${result.disease} (Confidence: ${result.confidence.toFixed(2)}%)`);
+                    
+                    // Clear all images after successful prediction
+                    imageFiles = [];
+                    
+                } else {    
+                    alert(`Prediction failed: ${result.message || 'Unknown server error'}`);
+                }
+
+            } catch (error) {
+                console.error('Error communicating with Flask API:', error);
+                alert("Connection error: Could not reach the AI service. Check your network/server.");
+            } finally {
+                updateUI();
+            }
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            startCamera(); 
+            updateUI();
+        };
+    </script>
+</body>
+</html>
