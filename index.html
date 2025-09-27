@@ -735,9 +735,33 @@
         }
       }
 
+      async function startCamera(facingMode) {
+        if (currentStream)
+          currentStream.getTracks().forEach((track) => track.stop());
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode },
+          });
+          currentStream = stream;
+          cameraFeed.srcObject = stream;
+          cameraFeed.style.transform = isFrontCamera
+            ? "scaleX(-1)"
+            : "scaleX(1)";
+          return stream; // ✅ Return the stream
+        } catch (err) {
+          console.error("Camera error:", err);
+          alert("Cannot access camera. Please allow camera permission.");
+          throw err;
+        }
+      }
+
       // --- INITIALIZATION ---
-      window.addEventListener("DOMContentLoaded", () => {
-        startCamera(isFrontCamera ? "user" : "environment"); 
+      window.addEventListener("DOMContentLoaded", async () => {
+        try {
+          await startCamera(isFrontCamera ? "user" : "environment");
+        } catch (err) {
+          console.warn("Camera permission not granted yet:", err);
+        }
         updateUI();
       });
     </script>
