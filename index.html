@@ -470,7 +470,7 @@
       let imageFiles = []; // Array to hold the selected File objects
       const MIN_PHOTOS = 3;
       let currentStream;
-      let isFrontCamera = true; // ✅ Start with front camera
+      let isFrontCamera = false;
 
       // --- DOM Element References ---
       const dropArea = document.getElementById("drop-area");
@@ -498,6 +498,7 @@
         fileCountSpan.textContent = totalCount;
         analysisCountSpan.textContent = analysisCount;
 
+        // Update the display for the analysis button
         if (analysisCount >= MIN_PHOTOS) {
           predictBtn.disabled = false;
           predictBtn.style.backgroundColor = "var(--primary-green)";
@@ -510,14 +511,19 @@
           } Photos to ANALYZE`;
         }
 
+        // Re-render all thumbnails to update the "USED" badge
         renderThumbnails();
       }
 
       function renderThumbnails() {
         recentUploadsContainer.innerHTML = ""; // Clear existing previews
-        imageFiles.forEach((file, index) => addThumbnail(file, index));
+
+        imageFiles.forEach((file, index) => {
+          addThumbnail(file, index);
+        });
       }
 
+      // Creates a thumbnail preview with a remove button
       function addThumbnail(file, index) {
         const reader = new FileReader();
         reader.onload = function (event) {
@@ -534,6 +540,7 @@
           removeBtn.textContent = "✖";
           removeBtn.classList.add("remove-btn");
 
+          // Add "USED" badge if it's one of the first MIN_PHOTOS
           if (index < MIN_PHOTOS) {
             const statusBadge = document.createElement("span");
             statusBadge.classList.add("photo-status");
@@ -542,13 +549,14 @@
           }
 
           removeBtn.onclick = function () {
+            // Remove the file by its index in the imageFiles array
             imageFiles.splice(index, 1);
-            updateUI();
+            updateUI(); // Re-render and update status
           };
 
           wrapper.appendChild(img);
           wrapper.appendChild(removeBtn);
-          recentUploadsContainer.appendChild(wrapper);
+          recentUploadsContainer.appendChild(wrapper); // Append them in order
         };
 
         if (file) reader.readAsDataURL(file);
@@ -556,7 +564,12 @@
 
       function handleFiles(files) {
         const fileArray = Array.from(files);
-        fileArray.forEach((file) => imageFiles.push(file));
+
+        fileArray.forEach((file) => {
+          // Add all files to the array - we no longer restrict selection
+          imageFiles.push(file);
+        });
+
         updateUI();
       }
 
@@ -564,13 +577,17 @@
       // --- EVENT LISTENERS ---
       // ===================================================================
 
-      browseBtn.addEventListener("click", () => fileInput.click());
+      // --- File Input and Browse Button ---
+      browseBtn.addEventListener("click", () => {
+        fileInput.click();
+      });
 
       fileInput.addEventListener("change", (e) => {
         handleFiles(e.target.files);
         e.target.value = "";
       });
 
+      // --- Drag and Drop Logic ---
       ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
         dropArea.addEventListener(eventName, preventDefaults, false);
       });
@@ -606,16 +623,19 @@
         e.stopPropagation();
       }
 
-      // --- FINAL PREDICTION BUTTON ---
+      // --- FINAL PREDICTION BUTTON HANDLER ---
       predictBtn.addEventListener("click", async () => {
         const analysisCount = Math.min(imageFiles.length, MIN_PHOTOS);
         if (analysisCount < MIN_PHOTOS) return;
 
+        // Show loading state
         predictBtn.textContent = "Analyzing... Please Wait ⏳";
         predictBtn.disabled = true;
 
+        // We only process the first MIN_PHOTOS (3) files for analysis
         const filesToAnalyze = imageFiles.slice(0, MIN_PHOTOS);
 
+        // 1. Convert the selected File objects into a list of Base64 strings
         const base64Promises = filesToAnalyze.map((file) => {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -628,6 +648,8 @@
         try {
           const base64Images = await Promise.all(base64Promises);
           console.log(base64Images);
+
+          // 2. Send the list of Base64 strings to the API
           await sendImageToAPI(base64Images);
         } catch (error) {
           console.error("Error during prediction:", error);
@@ -635,6 +657,7 @@
             "An error occurred during image processing or network transfer."
           );
         } finally {
+          // 3. Reset button state
           updateUI();
         }
       });
@@ -643,24 +666,27 @@
       // --- CAMERA AND CAPTURE LOGIC ---
       // ===================================================================
 
-      async function startCamera(facingMode) {
-        if (currentStream)
+      async function startCamera(facingMode = "environment") {
+        if (currentStream) {
           currentStream.getTracks().forEach((track) => track.stop());
+        }
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode },
-          });
-          currentStream = stream;
-          cameraFeed.srcObject = stream;
-          cameraFeed.style.transform = isFrontCamera
-            ? "scaleX(-1)"
-            : "scaleX(1)";
-        } catch (err) {
-          console.error("Camera error:", err);
-          alert("Cannot access camera.");
+          const constraints = {
+            video: {
+              facingMode: facingMode,
+            },
+          };
+          currentStream = await navigator.mediaDevices.getUserMedia(
+            constraints
+          );
+          cameraFeed.srcObject = currentStream;
+        } catch (error) {
+          console.error("Error accessing camera:", error);
+          alert("Camera access denied or no camera found.");
         }
       }
 
+      // Capture Photo Button
       captureBtn.addEventListener("click", () => {
         const canvas = document.createElement("canvas");
         canvas.width = cameraFeed.videoWidth;
@@ -676,49 +702,72 @@
           canvas.height
         );
 
+        // Convert to a File object
         canvas.toBlob((blob) => {
           const capturedFile = new File([blob], `capture_${Date.now()}.jpg`, {
             type: "image/jpeg",
           });
+
+          // Add to main image array and update UI
           imageFiles.push(capturedFile);
-          updateUI();
+          updateUI(); // Trigger re-render
         }, "image/jpeg");
       });
 
-      function flipCamera() {
-        isFrontCamera = !isFrontCamera;
-        startCamera(isFrontCamera ? "user" : "environment");
-      }
-
+      // Switch Camera (Front/Rear)
       document
         .getElementById("switchCameraBtn")
-        .addEventListener("click", flipCamera);
+        .addEventListener("click", () => {
+          isFrontCamera = !isFrontCamera;
+          startCamera(isFrontCamera ? "user" : "environment");
+          cameraFeed.style.transform = isFrontCamera
+            ? "scaleX(-1)"
+            : "scaleX(1)";
+        });
+
+      // Toggle Flash (Placeholder)
+      document
+        .getElementById("toggleFlashBtn")
+        .addEventListener("click", () => {
+          alert(
+            "Flash control is highly dependent on device and browser APIs and may not work in a web app."
+          );
+        });
 
       // ===================================================================
       // --- API COMMUNICATION ---
       // ===================================================================
 
       async function sendImageToAPI(base64ImageList) {
-        const API_IP = "127.0.0.1";
+        // *** IMPORTANT: CHANGE THIS IP/PORT TO YOUR LAPTOP'S IP ADDRESS AND FLASK PORT ***
+        const API_IP = "127.0.0.1"; // e.g., '192.168.1.105' for mobile testing
         const API_PORT = "5000";
+        // *** UPDATED ENDPOINT TO REFLECT DISEASE DETECTION ***
         const apiEndpoint = `http://${API_IP}:${API_PORT}/api/predict_disease_multi`;
 
         try {
           const response = await fetch(apiEndpoint, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ images: base64ImageList }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              images: base64ImageList,
+            }),
           });
 
           const result = await response.json();
           console.log("Flask API Response:", result);
 
           if (result.success) {
+            // UPDATED RESPONSE MESSAGE
             alert(
               `Prediction successful! Detected Disease: ${
                 result.disease
               } (Confidence: ${result.confidence.toFixed(2)}%)`
             );
+
+            // Clear all images after successful prediction
             imageFiles = [];
           } else {
             alert(
@@ -735,35 +784,21 @@
         }
       }
 
-      async function startCamera(facingMode) {
-        if (currentStream)
-          currentStream.getTracks().forEach((track) => track.stop());
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode },
-          });
-          currentStream = stream;
-          cameraFeed.srcObject = stream;
-          cameraFeed.style.transform = isFrontCamera
-            ? "scaleX(-1)"
-            : "scaleX(1)";
-          return stream; // ✅ Return the stream
-        } catch (err) {
-          console.error("Camera error:", err);
-          alert("Cannot access camera. Please allow camera permission.");
-          throw err;
-        }
+      function flipCamera() {
+        isFrontCamera = !isFrontCamera; // toggle camera
+        startCamera(isFrontCamera ? "user" : "environment");
+        cameraFeed.style.transform = isFrontCamera ? "scaleX(-1)" : "scaleX(1)";
       }
 
       // --- INITIALIZATION ---
-      window.addEventListener("DOMContentLoaded", async () => {
-        try {
-          await startCamera(isFrontCamera ? "user" : "environment");
-        } catch (err) {
-          console.warn("Camera permission not granted yet:", err);
-        }
+      window.onload = () => {
+        startCamera(isFrontCamera ? "user" : "environment");
         updateUI();
-      });
+      };
+
+      document
+        .getElementById("switchCameraBtn")
+        .addEventListener("click", flipCamera);
     </script>
   </body>
 </html>
