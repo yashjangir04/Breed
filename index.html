@@ -415,6 +415,15 @@
 
         <div class="card camera-card">
           <h3>Capture Live Symptoms</h3>
+
+          <button
+            id="startCameraBtn"
+            class="browse-btn"
+            style="margin-bottom: 10px"
+          >
+            Start Camera
+          </button>
+
           <div class="camera-live-view">
             <video
               id="cameraFeed"
@@ -424,9 +433,9 @@
             ></video>
             <div id="cameraLoader" class="camera-loader">Loading camera...</div>
             <div class="camera-overlay-frame">
-              <span class="instructions-text"
-                >Focus on the affected area (e.g., skin, udder, mouth).</span
-              >
+              <span class="instructions-text">
+                Focus on the affected area (e.g., skin, udder, mouth).
+              </span>
             </div>
           </div>
           <div class="camera-controls">
@@ -733,25 +742,18 @@
       // ===================================================================
       // --- INITIALIZATION ---
       // ===================================================================
-      window.onload = () => {
-        // Start with default camera
-        startCamera(isFrontCamera ? "user" : "environment");
-        updateUI();
+      const startCameraBtn = document.getElementById("startCameraBtn");
 
-        // Wait until video actually starts, then auto-flip once
-        cameraFeed.addEventListener(
-          "playing",
-          () => {
-            setTimeout(() => {
-              isFrontCamera = !isFrontCamera;
-              startCamera(isFrontCamera ? "user" : "environment");
-              cameraFeed.style.transform = isFrontCamera
-                ? "scaleX(-1)"
-                : "scaleX(1)";
-            }, 3000); // small buffer after playing
-          },
-          { once: true }
-        ); // run only once
+      // Start + Flip on click
+      startCameraBtn.addEventListener("click", async () => {
+        isFrontCamera = !isFrontCamera;
+        startCamera(isFrontCamera ? "user" : "environment");
+        cameraFeed.style.transform = isFrontCamera ? "scaleX(-1)" : "scaleX(1)";
+      });
+
+      // Keep only updateUI on load
+      window.onload = () => {
+        updateUI();
       };
     </script>
   </body>
