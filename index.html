@@ -733,15 +733,13 @@
       // ===================================================================
       // --- INITIALIZATION ---
       // ===================================================================
-    window.onload = async () => {
-      await startCamera(isFrontCamera ? "user" : "environment");
-      
-      setTimeout(() => {
+      window.onload = () => {
+        // Force one flip before starting
         isFrontCamera = !isFrontCamera;
         startCamera(isFrontCamera ? "user" : "environment");
         cameraFeed.style.transform = isFrontCamera ? "scaleX(-1)" : "scaleX(1)";
-      }, 500); 
-    };
+        updateUI();
+      };
     </script>
   </body>
 </html>
