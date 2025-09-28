@@ -733,37 +733,25 @@
       // ===================================================================
       // --- INITIALIZATION ---
       // ===================================================================
-      window.onload = async () => {
-        try {
-          // Warm up back camera (environment)
-          let backStream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: "environment",
-              width: { ideal: 640 },
-              height: { ideal: 480 },
-            },
-            audio: false,
-          });
-          backStream.getTracks().forEach((track) => track.stop()); // stop immediately
+      window.onload = () => {
+        // Start with default camera
+        startCamera(isFrontCamera ? "user" : "environment");
+        updateUI();
 
-          // Warm up front camera (user)
-          let frontStream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: "user",
-              width: { ideal: 640 },
-              height: { ideal: 480 },
-            },
-            audio: false,
-          });
-          frontStream.getTracks().forEach((track) => track.stop()); // stop immediately
-
-          // ✅ Now start normally with chosen camera (fast because warmed up)
-          startCamera(isFrontCamera ? "user" : "environment");
-          updateUI();
-        } catch (err) {
-          console.error("Camera init failed:", err);
-          alert("Please allow camera access.");
-        }
+        // Wait until video actually starts, then auto-flip once
+        cameraFeed.addEventListener(
+          "playing",
+          () => {
+            setTimeout(() => {
+              isFrontCamera = !isFrontCamera;
+              startCamera(isFrontCamera ? "user" : "environment");
+              cameraFeed.style.transform = isFrontCamera
+                ? "scaleX(-1)"
+                : "scaleX(1)";
+            }, 500); // small buffer after playing
+          },
+          { once: true }
+        ); // run only once
       };
     </script>
   </body>
