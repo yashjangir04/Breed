@@ -733,12 +733,37 @@
       // ===================================================================
       // --- INITIALIZATION ---
       // ===================================================================
-      window.onload = () => {
-        // Force one flip before starting
-        isFrontCamera = !isFrontCamera;
-        startCamera(isFrontCamera ? "user" : "environment");
-        cameraFeed.style.transform = isFrontCamera ? "scaleX(-1)" : "scaleX(1)";
-        updateUI();
+      window.onload = async () => {
+        try {
+          // Warm up back camera (environment)
+          let backStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: "environment",
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+            },
+            audio: false,
+          });
+          backStream.getTracks().forEach((track) => track.stop()); // stop immediately
+
+          // Warm up front camera (user)
+          let frontStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: "user",
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+            },
+            audio: false,
+          });
+          frontStream.getTracks().forEach((track) => track.stop()); // stop immediately
+
+          // ✅ Now start normally with chosen camera (fast because warmed up)
+          startCamera(isFrontCamera ? "user" : "environment");
+          updateUI();
+        } catch (err) {
+          console.error("Camera init failed:", err);
+          alert("Please allow camera access.");
+        }
       };
     </script>
   </body>
