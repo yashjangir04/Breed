@@ -180,6 +180,23 @@
         color: var(--primary-green);
       }
 
+      #startCameraBtn {
+        background-color: #28a745; /* green */
+        color: white;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+      }
+
+      #startCameraBtn:hover {
+        background-color: #14872d;
+      }
+
       .upload-card .or-separator {
         font-size: 0.9em;
         color: var(--text-color-light);
@@ -279,6 +296,10 @@
         min-height: 48px;
         font-size: 1.1em;
         margin-top: 20px;
+        outline: none;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
       }
       #predictBtn:disabled {
         background-color: var(--primary-yellow) !important;
@@ -298,7 +319,7 @@
         transform: translateX(-50%);
         background-color: var(--primary-green);
         color: white;
-        font-size: 0.65em;
+        font-size: 0.4em;
         padding: 2px 5px;
         border-radius: 4px;
         font-weight: bold;
@@ -731,11 +752,10 @@
               `Prediction failed: ${result.message || "Unknown server error"}`
             );
           }
+          updateUI();
         } catch (error) {
           console.error("API Error:", error);
           alert("Could not reach the AI service. Check network/server.");
-        } finally {
-          updateUI();
         }
       }
 
@@ -744,14 +764,12 @@
       // ===================================================================
       const startCameraBtn = document.getElementById("startCameraBtn");
 
-      // Start + Flip on click
       startCameraBtn.addEventListener("click", async () => {
         isFrontCamera = !isFrontCamera;
         startCamera(isFrontCamera ? "user" : "environment");
         cameraFeed.style.transform = isFrontCamera ? "scaleX(-1)" : "scaleX(1)";
       });
 
-      // Keep only updateUI on load
       window.onload = () => {
         updateUI();
       };
